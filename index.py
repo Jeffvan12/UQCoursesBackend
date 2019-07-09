@@ -2,8 +2,8 @@ from sanic import Sanic
 from sanic import response
 from sanic.response import json 
 from sanic_cors import CORS, cross_origin
-import Backend.uq_scraper as uq_scraper
-from Backend.uq_scraper import InvalidCoursePageError
+import uq_scraper as uq_scraper
+from uq_scraper import InvalidCoursePageError
 import aiohttp
 import json
 
@@ -14,7 +14,6 @@ CORS(app)
 async def test(request):
     
     url = json.loads(request.body)["courseUrl"]
-    
     if not url:
         return response.json({"Error": "Invalid URL"})
     else:
@@ -44,7 +43,7 @@ async def test(request):
             return response.text(text)
 
 
-        return response.json({"courses": uqcourses})
+        return response.json({"Courses": uqcourses})
 
 
 if __name__ == "__main__":

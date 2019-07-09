@@ -1,7 +1,7 @@
 import asyncio
 import aiohttp
 import random
-import Backend.sql_alchemy_tables as sql_tables
+import sql_alchemy_tables as sql_tables
 from bs4 import BeautifulSoup
 import time
 from databases import Database
@@ -146,8 +146,10 @@ class UqScraper:
                 prereq=details["prereq"],
                 rec=details["rec"]
             )
-
-            await self.database.execute(query=ins)
+            try:
+                await self.database.execute(query=ins)
+            except Exception as e:
+                print(f'{type(e)}, \n {e}')
 
             return await res.release()
 
@@ -195,4 +197,5 @@ async def main(url):
 
 
 # asyncio.run(main(";lksdjf;sdf"))
-# asyncio.run(main("https://www.youtube.com/"))
+# asyncio.run(main("https://my.uq.edu.au/programs-courses/plan_display.html?acad_plan=FINANX2424"))
+asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2369"))
