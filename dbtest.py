@@ -49,8 +49,8 @@ def connect():
 
         cursor = connection.cursor() 
 
-        # for command in commands:
-        #     cursor.execute(command)
+        for command in commands:
+            cursor.execute(command)
 
         sql_programs =   """
                 INSERT INTO programs (url, title) VALUES (%s, %s)
@@ -68,9 +68,9 @@ def connect():
         # toinsert = ("CSSE2010","Hell", "www.csse2310.com", "Intro to C", [1,2], "CSSE2010 and CSSE2002", "CSSE2010")
         # cursor.execute(sql_courses, toinsert)
 
-        cursor.execute("SELECT * FROM courses where url = 'thing'")
-        row = cursor.fetchmany() 
-        print(row) 
+        # cursor.execute("SELECT * FROM courses where url = 'thing'")
+        # row = cursor.fetchmany()
+        # print(row)
 
 
         cursor.close()

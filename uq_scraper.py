@@ -2,6 +2,8 @@ import asyncio
 import aiohttp
 import random
 import sql_alchemy_tables as sql_tables
+import datetime
+import random
 from bs4 import BeautifulSoup
 import time
 from databases import Database
@@ -22,7 +24,6 @@ class InvalidCoursePageError(Error):
         self.message = message
 
 
-
 class UqScraper:
     def __init__(self, program_url):
         self.program_url = program_url
@@ -38,15 +39,16 @@ class UqScraper:
         ua = UAS[random.randrange(len(UAS))]
         headers = {"user-agent": ua}
         self.headers = headers
-        self.database: Database = Database('postgresql://jeffvanpost:postpass@localhost/postgres_db')
+        self.database: Database = Database('postgresql://jeffvanpost:postpass@localhost/postgres_db', max_size=30)
         self.loop = asyncio.get_event_loop()
+        self.num = random.randint(1, 200)
 
     async def connect(self):
-        print("Connected to Database")
+        print(f"{self.num} at {datetime.datetime.now()} : Connected to Database")
         await self.database.connect()
 
     async def disconnect(self):
-        print("Disconnected from Database")
+        print(f"{self.num} at {datetime.datetime.now()} : Disconnected from Database")
         await self.database.disconnect()
 
     async def run(self):
@@ -55,14 +57,15 @@ class UqScraper:
         await self.connect()
         program_entry = await self.database.fetch_one(programs.select().where(programs.c.url == self.program_url))
 
-        if not program_entry:
+        print(f'{self.num} at {datetime.datetime.now()} : {self.program_url}')
 
+        if not program_entry:
 
             uqcourses = await self.do_get_courses_from_program()
 
             if isinstance(uqcourses, Exception):
+                await self.disconnect()
                 return uqcourses
-
 
             courses_to_scrap = []
             for course in uqcourses:
@@ -74,7 +77,7 @@ class UqScraper:
             ins = programs.insert().values(url=self.program_url, title=self.program_name)
             await self.database.execute(query=ins)
 
-            print("Scraping")
+            print(f"{self.num} at {datetime.datetime.now()} : Scraping")
             await asyncio.gather(*(self.do_scrap_course(url[1]) for url in courses_to_scrap[0:]))
 
             for course in uqcourses:
@@ -85,7 +88,7 @@ class UqScraper:
                 await self.database.execute(query=ins)
 
         returncourses = await self.query_courses_for_program()
-        print(f"Time Took : {time.time() - start}")
+        print(f"{self.num} at {datetime.datetime.now()} : Time Took : {time.time() - start}")
         await self.disconnect()
         return returncourses
 
@@ -136,7 +139,7 @@ class UqScraper:
                 "semesters": semesters,
             }
 
-            print(details["title"])
+            print(f'{self.num} at {datetime.datetime.now()} : {details["title"]}')
             ins = courses.insert().values(
                 course_id=details["code"],
                 summary=details["summary"],
@@ -159,7 +162,9 @@ class UqScraper:
                 soup = BeautifulSoup(await res.text(), "lxml")
                 self.program_name = soup.select_one("#page-head h1").text
 
-                if self.program_name == "The program course list you requested could not be found.":
+                if self.program_name == "The program course list you requested could not be found." \
+                        or self.program_name == "Error: Page not found"\
+                        or self.program_name == "The plan course list you requested could not be found.":
                     print(f"Invalid program code : {self.program_url}")
                     return InvalidCoursePageError()
 
@@ -198,4 +203,4 @@ async def main(url):
 
 # asyncio.run(main(";lksdjf;sdf"))
 # asyncio.run(main("https://my.uq.edu.au/programs-courses/plan_display.html?acad_plan=FINANX2424"))
-asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2369"))
+# asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2369"))
