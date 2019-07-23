@@ -1,6 +1,5 @@
 import asyncio
 import aiohttp
-import random
 import sql_alchemy_tables as sql_tables
 import datetime
 import random
@@ -43,21 +42,26 @@ class UqScraper:
         self.loop = asyncio.get_event_loop()
         self.num = random.randint(1, 200)
 
+    def logging(self, message: str):
+        print(f"{self.num} at {datetime.datetime.now()} : {message}")
+
     async def connect(self):
-        print(f"{self.num} at {datetime.datetime.now()} : Connected to Database")
+        self.logging("Connected to Database")
         await self.database.connect()
 
     async def disconnect(self):
-        print(f"{self.num} at {datetime.datetime.now()} : Disconnected from Database")
+        self.logging("Disconnected from Database")
         await self.database.disconnect()
 
     async def run(self):
 
         start = time.time()
+
         await self.connect()
+
         program_entry = await self.database.fetch_one(programs.select().where(programs.c.url == self.program_url))
 
-        print(f'{self.num} at {datetime.datetime.now()} : {self.program_url}')
+        self.logging("Scraping " + self.program_url)
 
         if not program_entry:
 
@@ -77,7 +81,6 @@ class UqScraper:
             ins = programs.insert().values(url=self.program_url, title=self.program_name)
             await self.database.execute(query=ins)
 
-            print(f"{self.num} at {datetime.datetime.now()} : Scraping")
             await asyncio.gather(*(self.do_scrap_course(url[1]) for url in courses_to_scrap[0:]))
 
             for course in uqcourses:
@@ -88,7 +91,8 @@ class UqScraper:
                 await self.database.execute(query=ins)
 
         returncourses = await self.query_courses_for_program()
-        print(f"{self.num} at {datetime.datetime.now()} : Time Took : {time.time() - start}")
+        self.logging(f"Time took {time.time()-start}")
+        self.logging(str(len(returncourses)))
         await self.disconnect()
         return returncourses
 
@@ -163,7 +167,7 @@ class UqScraper:
                 self.program_name = soup.select_one("#page-head h1").text
 
                 if self.program_name == "The program course list you requested could not be found." \
-                        or self.program_name == "Error: Page not found"\
+                        or self.program_name == "Error: Page not found" \
                         or self.program_name == "The plan course list you requested could not be found.":
                     print(f"Invalid program code : {self.program_url}")
                     return InvalidCoursePageError()
@@ -179,7 +183,6 @@ class UqScraper:
 
                 return fcourses
 
-
         except aiohttp.client.ClientConnectionError as e:
             print(f"Invalid Url : {e}")
             return e
@@ -190,17 +193,13 @@ class UqScraper:
             print(f"Not a uq Program URL : {e}")
             return e
         except Exception as e:
-            print(f"Some unhandled error occured : {e}\n of type {type(e)}")
+            print(f"Some unhandled error occurred : {e}\n of type {type(e)}")
             return e
 
 
 async def main(url):
-    scraper = UqScraper(url)
-    # loop = asyncio.get_event_loop()
-    uqcourses = await scraper.run()
+    uqcourses = await UqScraper(url).run()
     return uqcourses
 
-
-# asyncio.run(main(";lksdjf;sdf"))
-# asyncio.run(main("https://my.uq.edu.au/programs-courses/plan_display.html?acad_plan=FINANX2424"))
-asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2342"))
+# Just scrap courses
+asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2030"))
