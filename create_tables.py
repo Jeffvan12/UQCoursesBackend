@@ -1,8 +1,6 @@
 import psycopg2
 
 
-
-
 commands = (
     """
     CREATE TABLE courses (
@@ -14,13 +12,13 @@ commands = (
         prereq TEXT, 
         rec TEXT 
     )
-    """, 
+    """,
     """
     CREATE TABLE programs (
         url TEXT PRIMARY KEY, 
         title TEXT  
     )
-    """, 
+    """,
     """
     CREATE TABLE program_courses (
         program_url TEXT NOT NULL, 
@@ -37,40 +35,20 @@ commands = (
 )
 
 def connect():
-    connection = None 
+    connection = None
     try :
         connection = psycopg2.connect(
-            user = "jeffvanpost", 
-            host = "127.0.0.1", 
-            port = "5432", 
+            user = "jeffvanpost",
+            host = "127.0.0.1",
+            port = "5432",
             database = "postgres_db",
-            password = "postpass", 
+            password = "postpass",
         )
 
-        cursor = connection.cursor() 
+        cursor = connection.cursor()
 
         for command in commands:
             cursor.execute(command)
-
-        sql_programs =   """
-                INSERT INTO programs (url, title) VALUES (%s, %s)
-                """
-
-        sql_courses =   """
-                INSERT INTO courses (course_id, summary, url, title, semesters, prereq, rec) VALUES (%s, %s,%s,%s,%s,%s,%s)
-                """
-
-        sql_program_courses = """
-                        INSERT INTO program_courses (program_url, course_id) VALUES (%s,%s)
-                        """
-        
-
-        # toinsert = ("CSSE2010","Hell", "www.csse2310.com", "Intro to C", [1,2], "CSSE2010 and CSSE2002", "CSSE2010")
-        # cursor.execute(sql_courses, toinsert)
-
-        # cursor.execute("SELECT * FROM courses where url = 'thing'")
-        # row = cursor.fetchmany()
-        # print(row)
 
 
         cursor.close()
@@ -78,16 +56,16 @@ def connect():
         connection.commit()
 
 
-        print(f"You are connected") 
+        print(f"You are connected")
 
     except(Exception, psycopg2.Error) as error:
-        print("Error while connecting to POstgreSQL", error) 
+        print("Error while connecting to POstgreSQL", error)
 
 
     finally:
         if (connection):
-            connection.close() 
+            connection.close()
             print("PostGreSql connection closed")
 
 
-connect() 
+connect()

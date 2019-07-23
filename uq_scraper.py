@@ -203,4 +203,4 @@ async def main(url):
 
 # asyncio.run(main(";lksdjf;sdf"))
 # asyncio.run(main("https://my.uq.edu.au/programs-courses/plan_display.html?acad_plan=FINANX2424"))
-# asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2369"))
+asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2342"))
