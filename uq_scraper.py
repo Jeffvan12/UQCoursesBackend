@@ -17,7 +17,6 @@ class Error(Exception):
     pass
 
 
-# class InValidPageError():
 class InvalidCoursePageError(Error):
     def __int__(self, message):
         self.message = message
@@ -40,7 +39,7 @@ class UqScraper:
         self.headers = headers
         self.database: Database = Database('postgresql://jeffvanpost:postpass@localhost/postgres_db', max_size=30)
         self.loop = asyncio.get_event_loop()
-        self.num = random.randint(1, 200)
+        self.num = random.randint(100, 999)
 
     def logging(self, message: str):
         print(f"{self.num} at {datetime.datetime.now()} : {message}")
@@ -143,7 +142,7 @@ class UqScraper:
                 "semesters": semesters,
             }
 
-            print(f'{self.num} at {datetime.datetime.now()} : {details["title"]}')
+            self.logging(details['title'])
             ins = courses.insert().values(
                 course_id=details["code"],
                 summary=details["summary"],
@@ -202,4 +201,4 @@ async def main(url):
     return uqcourses
 
 # Just scrap courses
-asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2030"))
+# asyncio.run(main("https://my.uq.edu.au/programs-courses/program_list.html?acad_prog=2030"))

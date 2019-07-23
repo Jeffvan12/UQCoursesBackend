@@ -1,6 +1,5 @@
 import psycopg2
 
-
 commands = (
     """
     CREATE TABLE courses (
@@ -34,15 +33,16 @@ commands = (
     """
 )
 
+
 def connect():
     connection = None
-    try :
+    try:
         connection = psycopg2.connect(
-            user = "jeffvanpost",
-            host = "127.0.0.1",
-            port = "5432",
-            database = "postgres_db",
-            password = "postpass",
+            user="jeffvanpost",
+            host="127.0.0.1",
+            port="5432",
+            database="postgres_db",
+            password="postpass",
         )
 
         cursor = connection.cursor()
@@ -50,11 +50,9 @@ def connect():
         for command in commands:
             cursor.execute(command)
 
-
         cursor.close()
 
         connection.commit()
-
 
         print(f"You are connected")
 

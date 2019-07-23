@@ -1,22 +1,32 @@
 from sanic import Sanic
 from sanic import response
 from sanic.response import json
-from sanic_cors import CORS, cross_origin
+from sanic_cors import CORS
 import uq_scraper as uq_scraper
 from uq_scraper import InvalidCoursePageError
 import aiohttp
 import json
+import re
 
 app = Sanic()
 CORS(app)
+
+regex = r"https://my\.uq\.edu\.au/programs-courses/" \
+        r"(plan_display\.html\?acad_plan" \
+        r"|program_list\.html\?acad_prog)" \
+        r"=([A-Z]{6})?[0-9]{4}"
 
 
 @app.route("/", methods=["POST", "GET"])
 async def test(request):
     url = json.loads(request.body)["courseUrl"]
 
-    uqcourses = await uq_scraper.main(url)
+    if not re.search(regex, url):
+        text = f"Invalid Url : {url}"
+        print(text)
+        return response.text(text)
 
+    uqcourses = await uq_scraper.main(url)
 
     if isinstance(uqcourses, Exception):
         if isinstance(uqcourses, aiohttp.client.ClientConnectionError):
@@ -29,14 +39,14 @@ async def test(request):
             return response.text(text)
         elif isinstance(uqcourses, AttributeError):
             text = f"Not a uq URL : {url}"
-            print (text)
+            print(text)
             return response.text(text)
         elif isinstance(uqcourses, InvalidCoursePageError):
             text = f"Invalid program code : {url}"
             print(text)
             return response.text(text)
         else:
-            text = f"Some unhandled error occured, Sorry"
+            text = f"Some unhandled error occurred, Sorry"
             print(text)
             return response.text(text)
 
